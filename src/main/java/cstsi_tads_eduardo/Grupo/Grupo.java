@@ -23,13 +23,11 @@ public class Grupo {
     private String nome;
     private String descricao;
 
-    // Este é o lado "dono" da relação ManyToMany.
-    // A anotação @JoinTable define a tabela de junção e as colunas de chave estrangeira.
-    @ManyToMany(fetch = FetchType.EAGER) // EAGER pode ser útil aqui, mas use com cuidado em grandes listas
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "grupos_usuarios", // Nome da tabela de junção
-            joinColumns = @JoinColumn(name = "grupo_id"), // Chave estrangeira para Grupo
-            inverseJoinColumns = @JoinColumn(name = "usuario_id") // Chave estrangeira para Usuario
+            name = "grupos_usuarios",
+            joinColumns = @JoinColumn(name = "grupo_id"),
+            inverseJoinColumns = @JoinColumn(name = "usuario_id")
     )
     private List<Usuario> usuarios;
 

@@ -22,12 +22,10 @@ public class Rota {
     private double distancia;
     private double elevacao;
 
-    // Lado "dono" da relação com Usuario. A tabela 'rotas' terá a coluna 'usuario_id'.
-    @ManyToOne(fetch = FetchType.LAZY) // LAZY é o padrão e geralmente a melhor escolha
-    @JoinColumn(name = "usuario_id", nullable = false) // Rotas devem pertencer a um usuário
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    // Lado inverso da relação com Atividade.
     @OneToMany(mappedBy = "rota", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Atividade> atividades;
 }

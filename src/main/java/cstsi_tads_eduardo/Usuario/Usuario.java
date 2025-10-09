@@ -23,27 +23,21 @@ public class Usuario {
     private Long id;
     private String nome;
 
-    @Column(unique = true, nullable = false) // Email deve ser único e não nulo
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false) // Senha não deve ser nula
+    @Column(nullable = false)
     private String senha;
 
     private String biografia;
 
-    // Lado inverso da relação. A entidade 'Atividade' gerencia esta relação
-    // através do campo 'usuario'.
-    // Cascade e orphanRemoval podem ser úteis para gerenciar o ciclo de vida das atividades
-    // quando um usuário é removido.
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Atividade> atividades;
 
-    // Lado inverso da relação. A entidade 'Rota' gerencia esta relação
-    // através do campo 'usuario'.
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Rota> rotas;
 
-    // Lado inverso da relação ManyToMany. A entidade 'Grupo' gerencia a tabela de junção.
     @ManyToMany(mappedBy = "usuarios")
     private List<Grupo> grupos;
 }
+
