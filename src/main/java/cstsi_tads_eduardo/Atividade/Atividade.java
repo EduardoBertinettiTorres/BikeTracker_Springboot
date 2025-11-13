@@ -25,6 +25,16 @@ public class Atividade {
     private String tipoBicicleta;
     private boolean publica;
 
+    public Atividade(String nome, String descricao, double distancia, double tempo, Date data, String tipoBicicleta, boolean publica) {
+        this.nome = nome;
+        this.descricao = descricao;
+        this.distancia = distancia;
+        this.tempo = tempo;
+        this.data = data;
+        this.tipoBicicleta = tipoBicicleta;
+        this.publica = publica;
+    }
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rota_id")
     private Rota rota;

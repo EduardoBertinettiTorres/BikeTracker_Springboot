@@ -1,4 +1,4 @@
-package cstsi_tads_eduardo.doc;
+package cstsi_tads_eduardo.infra.doc;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -14,12 +14,21 @@ import org.springframework.context.annotation.Configuration;
 public class SpringDocConfiguration {
     @Bean
     public OpenAPI customOpenAPI() {
+        final String securitySchemeName = "bearerAuth";
         return new OpenAPI()
+                .addSecurityItem(new SecurityRequirement()
+                        .addList(securitySchemeName))
+                .components(new Components()
+                        .addSecuritySchemes(securitySchemeName, new SecurityScheme()
+                                .name(securitySchemeName)
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")))
                 .info(new Info()
-                        .title("API do BikeTracker")
-                        .description("API Rest da aplicação BikeTracker, contendo as funcionalidades de CRUD de atividades.")
+                        .title("API Desenvolvida em sala de aula na disciplina de TDS")
+                        .description("API Rest da aplicação tads_aulas, contendo as funcionalidades de CRUD de produtos.")
                         .contact(new Contact()
-                                .name("Time BikeTracker TDS")
+                                .name("Time Aulas TDS")
                                 .email("tds@ifsul.edu.br"))
                         .license(new License()
                                 .name("Apache 2.0")

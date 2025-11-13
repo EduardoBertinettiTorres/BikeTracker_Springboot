@@ -1,11 +1,13 @@
 package cstsi_tads_eduardo.Atividade;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.security.access.annotation.Secured;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -19,8 +21,8 @@ public class AtividadeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Atividade>> findAll(){
-        return ResponseEntity.ok(repository.findAll());
+    public ResponseEntity<List<AtividadeDtoResponse>> findAll(){
+        return ResponseEntity.ok(repository.findAll().stream().map(AtividadeDtoResponse::new).toList());
     }
 
     @GetMapping("{id}")
@@ -39,5 +41,46 @@ public class AtividadeController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(atividades);
+    }
+
+    @PostMapping
+    @Secured({"ROLE_ADMIN"})
+    public ResponseEntity<URI> insert(@RequestBody AtividadeDTOPost atividadeDTOPost, UriComponentsBuilder uriBuilder){
+        var p = repository.save(new Atividade(
+                atividadeDTOPost.nome(),
+                atividadeDTOPost.descricao(),
+                atividadeDTOPost.distancia(),
+                atividadeDTOPost.tempo(),
+                atividadeDTOPost.data(),
+                atividadeDTOPost.tipoBicicleta(),
+                atividadeDTOPost.publica()
+        ));
+        var location = uriBuilder.path("api/v1/atividades/{id}").buildAndExpand(p.getId()).toUri();
+        return ResponseEntity.created(location).build();
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity<AtividadeDtoResponse> update(@PathVariable("id") Long id, @Valid @RequestBody AtividadeDTOPut atividadeDTOPut){
+        var p = repository.save(new Atividade(
+                atividadeDTOPut.nome(),
+                atividadeDTOPut.descricao(),
+                atividadeDTOPut.distancia(),
+                atividadeDTOPut.tempo(),
+                atividadeDTOPut.data(),
+                atividadeDTOPut.tipoBicicleta(),
+                atividadeDTOPut.publica()
+        ));
+        return p != null ?
+                ResponseEntity.ok(new AtividadeDtoResponse(p)):
+                ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity delete(@PathVariable("id") Long id){
+        if(repository.existsById(id)){
+            repository.deleteById(id);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 }

@@ -1,0 +1,36 @@
+package cstsi_tads_eduardo.autenticacao;
+
+import cstsi_tads_eduardo.Usuario.Usuario;
+import cstsi_tads_eduardo.infra.security.TokenJwtDTO;
+import cstsi_tads_eduardo.infra.security.TokenService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+//indica que essa classe deve ser adicionada ao Contexto do aplicativo como um Bean da camada de controle API REST
+@RequestMapping("api/v1/login") //Endpoint padrão da classe
+public class AutenticacaoController {
+
+    private final AuthenticationManager manager; //o gerenciador de autenticação é quem dispara o loadUserByUsername (isto é, é interno do Spring Security, tem que usar ele)
+    private final TokenService tokenService;
+
+    public AutenticacaoController(AuthenticationManager manager, TokenService tokenService) {
+        this.manager = manager;
+        this.tokenService = tokenService;
+    }
+
+    @PostMapping
+    public ResponseEntity<TokenJwtDTO> efetuaLogin(@Valid @RequestBody UsuarioAutenticacaoDTO data) {
+        var authenticationDTO = new UsernamePasswordAuthenticationToken(data.email(), data.senha()); //converte o DTO em DTO do Spring Security
+
+        var authentication = manager.authenticate(authenticationDTO); //autentica o usuário (esse objeto contém o usuário e a senha)
+        var tokenJWT = tokenService.geraToken((Usuario) authentication.getPrincipal()); //gera o token JWT para enviar na response
+        return ResponseEntity.ok(new TokenJwtDTO(tokenJWT)); //envia a response com o token JWT
+    }
+}

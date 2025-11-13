@@ -1,43 +1,75 @@
 package cstsi_tads_eduardo.Usuario;
 
-import cstsi_tads_eduardo.Atividade.Atividade;
-import cstsi_tads_eduardo.Grupo.Grupo;
-import cstsi_tads_eduardo.Rota.Rota;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.Collection;
 import java.util.List;
-
 @Entity(name = "Usuario")
 @Table(name = "usuarios")
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-public class Usuario {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class Usuario implements UserDetails {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nome;
-
-    @Column(unique = true, nullable = false)
+    private String sobrenome;
+    @Column(unique = true)
     private String email;
-
-    @Column(nullable = false)
     private String senha;
+    private boolean isConfirmado = false;
 
-    private String biografia;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "usuarios_perfis",
+            joinColumns = @JoinColumn(name = "usuarios_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "perfis_id", referencedColumnName = "id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"usuarios_id", "perfis_id"}))
+    private List<Perfil> perfis;
 
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Atividade> atividades;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return perfis;
+    }
 
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Rota> rotas;
+    @Override
+    public String getPassword() {
+        return senha;
+    }
 
-    @ManyToMany(mappedBy = "usuarios")
-    private List<Grupo> grupos;
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    //Método utilitário para gerar o Hash da senha
+    public static void main(String[] args) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        System.out.println(encoder.encode("Teste12@"));
+    }
 }
-
