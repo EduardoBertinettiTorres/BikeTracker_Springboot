@@ -1,11 +1,11 @@
 package cstsi_tads_eduardo.Atividade;
 
+import cstsi_tads_eduardo.Usuario.Usuario;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.security.access.annotation.Secured;
 
 import java.net.URI;
 import java.util.List;
@@ -21,66 +21,120 @@ public class AtividadeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AtividadeDtoResponse>> findAll(){
+    public ResponseEntity<List<AtividadeDtoResponse>> findAll() {
+        // Retorna todas convertidas para DTO
         return ResponseEntity.ok(repository.findAll().stream().map(AtividadeDtoResponse::new).toList());
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Atividade> findById(@PathVariable Long id){
+    public ResponseEntity<AtividadeDtoResponse> findById(@PathVariable Long id,
+                                                         @AuthenticationPrincipal Usuario usuarioLogado) {
         var optionalAtividade = repository.findById(id);
-        if(optionalAtividade.isPresent()){
-            return ResponseEntity.ok(optionalAtividade.get());
+
+        if (optionalAtividade.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+
+        var atividade = optionalAtividade.get();
+
+        // Verifica se é pública OU se pertence ao usuário logado
+        if (!atividade.isPublica() && !atividade.getUsuario().getId().equals(usuarioLogado.getId())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        return ResponseEntity.ok(new AtividadeDtoResponse(atividade));
     }
 
     @GetMapping("nome/{nome}")
-    public ResponseEntity<List<Atividade>> findByNome(@PathVariable  String nome){
+    public ResponseEntity<List<AtividadeDtoResponse>> findByNome(@PathVariable String nome,
+                                                                 @AuthenticationPrincipal Usuario usuarioLogado) {
         var atividades = repository.findByNome(nome + "%");
-        if(atividades.isEmpty()){
+
+        if (atividades.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(atividades);
+
+        // Filtra para retornar apenas as que o usuário pode ver
+        var permitidas = atividades.stream()
+                .filter(a -> a.isPublica() || a.getUsuario().getId().equals(usuarioLogado.getId()))
+                .map(AtividadeDtoResponse::new)
+                .toList();
+
+        return ResponseEntity.ok(permitidas);
     }
 
     @PostMapping
-    @Secured({"ROLE_ADMIN"})
-    public ResponseEntity<URI> insert(@RequestBody AtividadeDTOPost atividadeDTOPost, UriComponentsBuilder uriBuilder){
-        var p = repository.save(new Atividade(
-                atividadeDTOPost.nome(),
-                atividadeDTOPost.descricao(),
-                atividadeDTOPost.distancia(),
-                atividadeDTOPost.tempo(),
-                atividadeDTOPost.data(),
-                atividadeDTOPost.tipoBicicleta(),
-                atividadeDTOPost.publica()
-        ));
-        var location = uriBuilder.path("api/v1/atividades/{id}").buildAndExpand(p.getId()).toUri();
+    public ResponseEntity<URI> insert(@Valid @RequestBody AtividadeDTOPost dados,
+                                      @AuthenticationPrincipal Usuario usuarioLogado,
+                                      UriComponentsBuilder uriBuilder) {
+
+        // Criação usando Setters (mais seguro e claro que construtor gigante)
+        var atividade = new Atividade();
+        atividade.setNome(dados.nome());
+        atividade.setDescricao(dados.descricao());
+        atividade.setDistancia(dados.distancia());
+        atividade.setTempo(dados.tempo());
+        atividade.setData(dados.data());
+        atividade.setTipoBicicleta(dados.tipoBicicleta());
+        atividade.setPublica(dados.publica());
+
+        // VINCULA O USUÁRIO LOGADO (Correção do erro 409)
+        atividade.setUsuario(usuarioLogado);
+
+        repository.save(atividade);
+
+        var location = uriBuilder.path("api/v1/atividades/{id}").buildAndExpand(atividade.getId()).toUri();
         return ResponseEntity.created(location).build();
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<AtividadeDtoResponse> update(@PathVariable("id") Long id, @Valid @RequestBody AtividadeDTOPut atividadeDTOPut){
-        var p = repository.save(new Atividade(
-                atividadeDTOPut.nome(),
-                atividadeDTOPut.descricao(),
-                atividadeDTOPut.distancia(),
-                atividadeDTOPut.tempo(),
-                atividadeDTOPut.data(),
-                atividadeDTOPut.tipoBicicleta(),
-                atividadeDTOPut.publica()
-        ));
-        return p != null ?
-                ResponseEntity.ok(new AtividadeDtoResponse(p)):
-                ResponseEntity.notFound().build();
+    public ResponseEntity<AtividadeDtoResponse> update(@PathVariable("id") Long id,
+                                                       @Valid @RequestBody AtividadeDTOPut dados,
+                                                       @AuthenticationPrincipal Usuario usuarioLogado) {
+        var optionalAtividade = repository.findById(id);
+
+        if (optionalAtividade.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        var atividade = optionalAtividade.get();
+
+        // SEGURANÇA: Só o dono pode editar
+        if (!atividade.getUsuario().getId().equals(usuarioLogado.getId())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        // Atualiza os dados
+        atividade.setNome(dados.nome());
+        atividade.setDescricao(dados.descricao());
+        atividade.setDistancia(dados.distancia());
+        atividade.setTempo(dados.tempo());
+        atividade.setData(dados.data());
+        atividade.setTipoBicicleta(dados.tipoBicicleta());
+        atividade.setPublica(dados.publica());
+
+        repository.save(atividade);
+
+        return ResponseEntity.ok(new AtividadeDtoResponse(atividade));
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity delete(@PathVariable("id") Long id){
-        if(repository.existsById(id)){
-            repository.deleteById(id);
-            return ResponseEntity.ok().build();
+    public ResponseEntity<Void> delete(@PathVariable("id") Long id,
+                                       @AuthenticationPrincipal Usuario usuarioLogado) {
+        var optionalAtividade = repository.findById(id);
+
+        if (optionalAtividade.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+
+        var atividade = optionalAtividade.get();
+
+        // SEGURANÇA: Só o dono pode deletar
+        if (!atividade.getUsuario().getId().equals(usuarioLogado.getId())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        repository.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 }
