@@ -6,38 +6,30 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.4</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
+        <relativePath/> </parent>
+
     <groupId>cstsi_tads_eduardo</groupId>
     <artifactId>tads_eduardo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>tads_eduardo</name>
     <description>Demo project for Spring Boot</description>
-    <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
+
     <properties>
         <java.version>17</java.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-rest</artifactId>
         </dependency>
 
         <dependency>
@@ -49,6 +41,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
             <optional>true</optional>
         </dependency>
 
@@ -57,23 +50,13 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-rest</artifactId>
-        </dependency>
-        <!-- Para a Documentação do app -->
-        <!-- https://springdoc.org/ -->
+
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.0.2</version>
         </dependency>
-        <!-- Para adicionar segurança no app -->
-        <!-- Spring Security é uma estrutura que fornece autenticação, autorização e proteção contra ataques comuns
-            https://docs.spring.io/spring-boot/docs/current/reference/html/web.html#web.security -->
-        <!-- Configuração starter do Spring Security (o que vem configuradao por padrão)
-            https://docs.spring.io/spring-security/reference/servlet/getting-started.html#servlet-hello-auto-configuration
-        -->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -83,23 +66,13 @@
             <artifactId>java-jwt</artifactId>
             <version>4.4.0</version>
         </dependency>
-        <dependency>
-            <groupId>com.auth0</groupId>
-            <artifactId>java-jwt</artifactId>
-            <version>4.4.0</version>
-        </dependency>
-        <!-- Para a Validação da integridade dos dados do app -->
-        <!-- https://docs.spring.io/spring-framework/docs/4.1.x/spring-framework-reference/html/validation.html -->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -118,17 +91,19 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version> <configuration>
-                <source>${java.version}</source> <target>${java.version}</target>
-                <annotationProcessorPaths>
-                    <path>
-                        <groupId>org.projectlombok</groupId>
-                        <artifactId>lombok</artifactId>
-                        <version>1.18.30</version> </path>
-                </annotationProcessorPaths>
-            </configuration>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.30</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>
